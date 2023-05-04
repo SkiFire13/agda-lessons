@@ -66,6 +66,41 @@ lemma-even-odd : (a : ℕ) → Even a ⊎ Odd a
 lemma-even-odd zero = left base-even
 lemma-even-odd (succ a) = lemma-succ (lemma-even-odd a)
 
+module even'-fn where
+  data Unit : Set where
+    tt : Unit
+
+  data ⊥ : Set where
+
+  Even' : ℕ → Set
+  Even' zero            = Unit
+  Even' (succ zero)     = ⊥
+  Even' (succ (succ n)) = Even' n
+
+  lemma-sum-even' : {a b : ℕ} → Even' a → Even' b → Even' (a + b)
+  lemma-sum-even' {zero}          {b} ea eb = eb
+  lemma-sum-even' {succ (succ a)} {b} ea eb = lemma-sum-even' {a} ea eb
+
+module even-odd-set where
+  data Bool : Set where
+    false true : Bool
+
+  even? : ℕ → Bool
+  even? zero            = true
+  even? (succ zero)     = false
+  even? (succ (succ n)) = even? n
+
+  even-odd-set : ℕ → Set
+  even-odd-set n with even? n
+  ... | true  = Even n
+  ... | false = Odd n
+
+  lemma-even-odd' : (n : ℕ) → even-odd-set n
+  lemma-even-odd' zero            = base-even
+  lemma-even-odd' (succ zero)     = base-odd
+  lemma-even-odd' (succ (succ n)) with even? n | lemma-even-odd' n
+  ... | false | o = step-odd o
+  ... | true  | e = step-even e
 
 -----------------
 ----[ LISTS ]----
