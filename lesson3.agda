@@ -63,7 +63,7 @@ module playground where
     even : {n : ℕ} → Even₂ (double n)
 
   even-to-even₂ : {n : ℕ} → Even n → Even₂ n
-  even-to-even₂ base = even {zero}
+  even-to-even₂ base = even
   even-to-even₂ (step e) with even-to-even₂ e
   ... | even = even
 
