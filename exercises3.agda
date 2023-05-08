@@ -46,7 +46,7 @@ data _≡_ {X : Set} : X → X → Set where
 ----[ LOGICAL TAUTOLOGIES ]---------
 ------------------------------------
 
-dni : {A B : Set} → A → ¬ (¬ A)
+dni : {A : Set} → A → ¬ (¬ A)
 dni p ¬p = ¬p p
 
 contraposition : {A B : Set} → (A → B) → (¬ B → ¬ A)
