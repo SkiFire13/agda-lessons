@@ -250,15 +250,24 @@ lemma-take-drop (succ k) (x ∷ xs) = cong (_∷_ x) (lemma-take-drop k xs)
 
 -- EXERCISE: Find out where the difficulty is in stating that _++ᵥ_ on
 -- vectors is associative.
-lemma-vector-def-+-associative : {A : Set} → (n m o : ℕ) → Vector A (n + (m + o)) → Vector A ((n + m) + o)
-lemma-vector-def-+-associative {A} n m o v = transport (Vector A) (lemma-+-associative n m o) v
 
-lemma-++ᵥ-associative-h : {A : Set} → (n m o : ℕ) (x : A) (xs : Vector A (n + (m + o))) (ys : Vector A ((n + m) + o))
-                        → lemma-vector-def-+-associative n m o xs ≡ ys
-                        → lemma-vector-def-+-associative (succ n) m o (x ∷ xs) ≡ (x ∷ ys)
-lemma-++ᵥ-associative-h n m o x xs .(lemma-vector-def-+-associative n m o xs) refl = {!   !}
+infix 4 _≅_
 
-lemma-++ᵥ-associative : {A : Set} {n m o : ℕ} → (xs : Vector A n) (ys : Vector A m) (zs : Vector A o)
-                        → lemma-vector-def-+-associative n m o (xs ++ᵥ (ys ++ᵥ zs)) ≡ (xs ++ᵥ ys) ++ᵥ zs
+data _≅_ {X : Set} (a : X) : {Y : Set} → Y → Set where
+  refl : a ≅ a
+
+≅-to-≡ : {X : Set} {a b : X} → a ≅ b → a ≡ b
+≅-to-≡ refl = refl
+
+≡-to-≅ : {X : Set} {a b : X} → a ≡ b → a ≅ b
+≡-to-≅ refl = refl
+
+lemma-++ᵥ-associative : {A : Set} {n m o : ℕ} (xs : Vector A n) (ys : Vector A m) (zs : Vector A o)
+                        → xs ++ᵥ (ys ++ᵥ zs) ≅ (xs ++ᵥ ys) ++ᵥ zs
 lemma-++ᵥ-associative [] ys zs       = refl
-lemma-++ᵥ-associative {A} {succ n} {m} {o} (x ∷ xs) ys zs = lemma-++ᵥ-associative-h n m o _ _ _ (lemma-++ᵥ-associative xs ys zs)
+lemma-++ᵥ-associative {_} {succ n} {m} {o} (x ∷ xs) ys zs =
+  helper (lemma-+-associative n m o) (lemma-++ᵥ-associative xs ys zs)
+  where
+  helper : {A : Set} {n m : ℕ} {x : A} {xs : Vector A n} {ys : Vector A m} → n ≡ m → xs ≅ ys
+         → _≅_ {Vector A (succ n)} (x ∷ xs) {Vector A (succ m)} (x ∷ ys)
+  helper refl refl = refl
