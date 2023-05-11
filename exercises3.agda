@@ -272,15 +272,12 @@ lemma-++ᵥ-associative {_} {succ n} {m} {o} (x ∷ xs) ys zs =
          → _≅_ {Vector A (succ n)} (x ∷ xs) {Vector A (succ m)} (x ∷ ys)
   helper refl refl = refl
 
-lemma-++ᵥ-associative-ty : {A : Set} {n m : ℕ}→ Vector A n → Vector A m → n ≡ m → Set
-lemma-++ᵥ-associative-ty xs ys refl = xs ≡ ys
-
 lemma-++ᵥ-associative' : {A : Set} {n m o : ℕ} (xs : Vector A n) (ys : Vector A m) (zs : Vector A o)
-                         → lemma-++ᵥ-associative-ty (xs ++ᵥ (ys ++ᵥ zs)) ((xs ++ᵥ ys) ++ᵥ zs) (lemma-+-associative n m o)
+                          → transport (Vector A) (lemma-+-associative n m o) (xs ++ᵥ (ys ++ᵥ zs)) ≡ ((xs ++ᵥ ys) ++ᵥ zs)
 lemma-++ᵥ-associative' []                            ys zs = refl
 lemma-++ᵥ-associative' {_} {succ n} {m} {o} (x ∷ xs) ys zs = helper (lemma-+-associative n m o) (lemma-++ᵥ-associative' xs ys zs)
   where
   helper : {A : Set} {n m : ℕ} {x : A} {xs : Vector A n} {ys : Vector A m} → (n≡m : n ≡ m)
-           → lemma-++ᵥ-associative-ty xs ys n≡m
-           → lemma-++ᵥ-associative-ty (x ∷ xs) (x ∷ ys) (cong succ n≡m)
+           → transport (Vector A) n≡m xs ≡ ys
+           → transport (Vector A) (cong succ n≡m) (x ∷ xs) ≡ x ∷ ys 
   helper refl refl = refl
