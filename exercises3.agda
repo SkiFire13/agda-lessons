@@ -109,12 +109,65 @@ even?' zero            = true
 even?' (succ zero)     = false
 even?' (succ (succ n)) = even?' n
 
+lemma₀ : ! (! true) ≡ true
+lemma₀ = refl
+
+lemma₁ : ! (! false) ≡ false
+lemma₁ = refl
+
+-- `! (! x) ≡ x` is a dependent type because it depends on value `x`
+lemma₂ : (x : Bool) → ! (! x) ≡ x
+lemma₂ false = refl
+lemma₂ true  = refl
+
+lemma₃ : {x : _} → ! (! x) ≡ x
+lemma₃ {false} = refl
+lemma₃ {true}  = refl
+
+lemma₄ : ! (! false) ≡ false
+lemma₄ = lemma₂ false
+
+lemma₅ : ! (! false) ≡ false
+lemma₅ = lemma₃ -- {false}
+
+lemma-even?-even?'-new : (a : ℕ) → even? a ≡ even?' a
+lemma-even?-even?'-new zero            = refl
+lemma-even?-even?'-new (succ zero)     = refl
+lemma-even?-even?'-new (succ (succ a)) = trans lemma₃ (lemma-even?-even?'-new a)
+
 lemma-even?-even?' : (a : ℕ) → even? a ≡ even?' a
 lemma-even?-even?' zero            = refl
 lemma-even?-even?' (succ zero)     = refl
 lemma-even?-even?' (succ (succ a)) with even? a | lemma-even?-even?' a
 ... | true  | e = e
 ... | false | e = e
+
+infix  3 _∎
+infixr 2 _≡⟨_⟩_ _≡⟨⟩_
+infix  1 begin_
+
+_≡⟨_⟩_ : {A : Set} {y z : A} → (x : A) → x ≡ y → y ≡ z → x ≡ z
+x ≡⟨ p ⟩ q = trans p q
+
+_≡⟨⟩_ : {A : Set} {y : A} → (x : A) → (q : x ≡ y) → x ≡ y
+x ≡⟨⟩ q = q
+
+_∎ : {A : Set} → (x : A) → x ≡ x
+x ∎ = refl
+
+begin_ : {A : Set} {x y : A} → x ≡ y → x ≡ y
+begin p = p
+
+lemma-even?-even?'-better : (a : ℕ) → even? a ≡ even?' a
+lemma-even?-even?'-better zero            = refl
+lemma-even?-even?'-better (succ zero)     = refl
+lemma-even?-even?'-better (succ (succ a)) = begin
+  even? (succ (succ a))  ≡⟨⟩
+  ! (even? (succ a))     ≡⟨⟩
+  ! (! (even? a))        ≡⟨ lemma₃ ⟩
+  even? a                ≡⟨ lemma-even?-even?'-better a ⟩
+  even?' a               ≡⟨⟩
+  even?' (succ (succ a)) ∎
 
 -- EXERCISE: Show that it is not the case that "succ (pred a) ≡ a" for all natural numbers a.
 lemma-succ-pred : ((a : ℕ) → succ (pred a) ≡ a) → ⊥
@@ -281,3 +334,4 @@ lemma-++ᵥ-associative' {_} {succ n} {m} {o} (x ∷ xs) ys zs = helper (lemma-+
            → transport (Vector A) n≡m xs ≡ ys
            → transport (Vector A) (cong succ n≡m) (x ∷ xs) ≡ x ∷ ys 
   helper refl refl = refl
+ 
