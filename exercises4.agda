@@ -88,7 +88,7 @@ lemma-+-associative (succ a) b c = begin
   ((succ a + b) + c) ∎
 
 lemma-·-distributive : (a b c : ℕ) → ((a + b) · c) ≡ ((a · c) + (b · c))
-lemma-·-distributive zero b c = refl
+lemma-·-distributive zero     b c = refl
 lemma-·-distributive (succ a) b c = begin
   ((succ a + b) · c)      ≡⟨⟩
   ((succ (a + b)) · c)    ≡⟨⟩
@@ -133,7 +133,7 @@ lemma-·-zero (succ a) = lemma-·-zero a
 
 -- EXERCISE: Fill in this hole.
 lemma-·-succ : (a b : ℕ) → ((a · succ b) ≡ (a + (a · b)))
-lemma-·-succ zero b     = refl
+lemma-·-succ zero     b = refl
 lemma-·-succ (succ a) b = begin
   (succ a) · (succ b)       ≡⟨⟩
   (succ b) + (a · succ b)   ≡⟨⟩
@@ -180,8 +180,8 @@ data _⊎_ (A B : Set) : Set where
   right : B → A ⊎ B
 
 lemma-even-odd : (a : ℕ) → Even a ⊎ Odd a
-lemma-even-odd zero     = left base-even
-lemma-even-odd (succ zero) = right base-odd
+lemma-even-odd zero            = left base-even
+lemma-even-odd (succ zero)     = right base-odd
 lemma-even-odd (succ (succ a)) with lemma-even-odd a
 ... | left e  = left (step-even e)
 ... | right o = right (step-odd o)
@@ -195,11 +195,8 @@ even? : (n : ℕ) → Dec (Even n)
 even? zero            = yes base-even
 even? (succ zero)     = no (λ ())
 even? (succ (succ n)) with even? n
-... | yes e = yes (step-even e)
-... | no  o = no (λ e → o (extract-step-even e))
-  where
-  extract-step-even : Even (succ (succ n)) → Even n
-  extract-step-even (step-even e) = e
+... | yes e  = yes (step-even e)
+... | no  ¬e = no λ { (step-even e) → ¬e e }
 
 -- EXERCISE: Fill this hole, establishing that the property for
 -- a list of numbers to consist only of even numbers is decidable.

@@ -197,12 +197,12 @@ lemma-+-succ (succ a) b = cong succ (lemma-+-succ a b)
 
 -- EXERCISE: Verify that addition is commutative.
 lemma-+-commutative : (a b : ℕ) → (a + b) ≡ (b + a)
-lemma-+-commutative a zero = lemma-+-zero a
+lemma-+-commutative a zero     = lemma-+-zero a
 lemma-+-commutative a (succ b) = trans (lemma-+-succ a b) (cong succ (lemma-+-commutative a b))
 
 -- EXERCISE: Verify that addition is associative.
 lemma-+-associative : (a b c : ℕ) → (a + (b + c)) ≡ ((a + b) + c)
-lemma-+-associative zero b c = refl
+lemma-+-associative zero     b c = refl
 lemma-+-associative (succ a) b c = cong succ (lemma-+-associative a b c)
 
 -- EXERCISE: Verify the distributive law. Similar as the implementation/proof
@@ -210,7 +210,7 @@ lemma-+-associative (succ a) b c = cong succ (lemma-+-associative a b c)
 -- By a technique called "equational reasoning", to be introduced next week,
 -- we will be able to clean up the proof.
 lemma-distributive : (a b c : ℕ) → ((a + b) · c) ≡ ((a · c) + (b · c))
-lemma-distributive zero b c = refl
+lemma-distributive zero     b c = refl
 lemma-distributive (succ a) b c = trans (cong (λ n → c + n) (lemma-distributive a b c)) (lemma-+-associative c (a · c) (b · c))
 
 -- EXERCISE: Show that the double of any number is even.
@@ -219,7 +219,7 @@ data Even : ℕ → Set where
   step-even : {n : ℕ} → Even n → Even (succ (succ n))
 
 lemma-double-even : (a : ℕ) → Even (a + a)
-lemma-double-even zero = base-even
+lemma-double-even zero     = base-even
 lemma-double-even (succ a) = transport (λ n → Even (succ n)) (lemma-+-commutative (succ a) a) (step-even (lemma-double-even a))
 
 
@@ -267,12 +267,12 @@ module _ {A : Set} where
 
   -- EXERCISE: Show that equal lists are related by _≈_.
   ≡→≈ : {xs ys : List A} → xs ≡ ys → xs ≈ ys
-  ≡→≈ {[]} refl = both-empty
+  ≡→≈ {[]}     refl = both-empty
   ≡→≈ {x ∷ xs} refl = both-same-cons refl (≡→≈ refl)
 
   -- EXERCISE: Show that related lists are equal.
   ≈→≡ : {xs ys : List A} → xs ≈ ys → xs ≡ ys
-  ≈→≡ both-empty = refl
+  ≈→≡ both-empty                      = refl
   ≈→≡ (both-same-cons {x = x} refl p) = cong (_∷_ x) (≈→≡ p)
 
 
@@ -298,7 +298,7 @@ _++ᵥ_ : {A : Set} {n m : ℕ} → Vector A n → Vector A m → Vector A (n + 
 
 -- EXERCISE: Verify the following lemma.
 lemma-take-drop : {A : Set} {n : ℕ} → (k : ℕ) → (xs : Vector A (k + n)) → (take k xs ++ᵥ drop k xs) ≡ xs
-lemma-take-drop zero xs     = refl
+lemma-take-drop zero     xs       = refl
 lemma-take-drop (succ k) (x ∷ xs) = cong (_∷_ x) (lemma-take-drop k xs)
 
 -- EXERCISE: Find out where the difficulty is in stating that _++ᵥ_ on
@@ -318,7 +318,7 @@ data _≅_ {X : Set} (a : X) : {Y : Set} → Y → Set where
 
 lemma-++ᵥ-associative₁ : {A : Set} {n m o : ℕ} (xs : Vector A n) (ys : Vector A m) (zs : Vector A o)
                          → xs ++ᵥ (ys ++ᵥ zs) ≅ (xs ++ᵥ ys) ++ᵥ zs
-lemma-++ᵥ-associative₁ [] ys zs       = refl
+lemma-++ᵥ-associative₁                      []       ys zs = refl
 lemma-++ᵥ-associative₁ {_} {succ n} {m} {o} (x ∷ xs) ys zs =
   helper (lemma-+-associative n m o) (lemma-++ᵥ-associative₁ xs ys zs)
   where
@@ -329,7 +329,7 @@ lemma-++ᵥ-associative₁ {_} {succ n} {m} {o} (x ∷ xs) ys zs =
 -- Version with transport and helper function
 lemma-++ᵥ-associative₂ : {A : Set} {n m o : ℕ} (xs : Vector A n) (ys : Vector A m) (zs : Vector A o)
                          → transport (Vector A) (lemma-+-associative n m o) (xs ++ᵥ (ys ++ᵥ zs)) ≡ ((xs ++ᵥ ys) ++ᵥ zs)
-lemma-++ᵥ-associative₂ []                            ys zs = refl
+lemma-++ᵥ-associative₂                      []       ys zs = refl
 lemma-++ᵥ-associative₂ {_} {succ n} {m} {o} (x ∷ xs) ys zs = helper (lemma-+-associative n m o) (lemma-++ᵥ-associative₂ xs ys zs)
   where
   helper : {A : Set} {n m : ℕ} {x : A} {xs : Vector A n} {ys : Vector A m} → (n≡m : n ≡ m)
@@ -347,7 +347,7 @@ transport-id f g refl = refl
 
 lemma-++ᵥ-associative₃ : {A : Set} {n m o : ℕ} (xs : Vector A n) (ys : Vector A m) (zs : Vector A o)
                          → transport (Vector A) (lemma-+-associative n m o) (xs ++ᵥ (ys ++ᵥ zs)) ≡ ((xs ++ᵥ ys) ++ᵥ zs)
-lemma-++ᵥ-associative₃ []                            ys zs = refl
+lemma-++ᵥ-associative₃                      []       ys zs = refl
 lemma-++ᵥ-associative₃ {A} {succ n} {m} {o} (x ∷ xs) ys zs = trans
   (equal→pwequal (transport-id succ (x ∷_) (lemma-+-associative n m o)))
   (cong (x ∷_) (lemma-++ᵥ-associative₃ xs ys zs))
