@@ -338,8 +338,11 @@ lemma-++ᵥ-associative' {_} {succ n} {m} {o} (x ∷ xs) ys zs = helper (lemma-+
   helper refl refl = refl
 
 -- Version with transport and proof that transport preserves equality when composed from both sides
+_∘_ : {A B C : Set} → (B → C) → (A → B) → (A → C)
+(f ∘ g) x = f (g x)
+
 transport-id : {A : Set} {F : A → Set} (f : A → A) (g : {a : A} (x : F a) → F (f a)) {a b : A} (a≡b : a ≡ b)
-               → (λ x → transport F (cong f a≡b) (g x)) ≡ (λ x → g (transport F a≡b x))
+               → (transport F (cong f a≡b)) ∘ g ≡ g ∘ (transport F a≡b)
 transport-id f g refl = refl
 
 lemma-++ᵥ-associative'' : {A : Set} {n m o : ℕ} (xs : Vector A n) (ys : Vector A m) (zs : Vector A o)
