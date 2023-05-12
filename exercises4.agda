@@ -166,7 +166,6 @@ data Even : ℕ → Set where
 data AllEven : List ℕ → Set where
   even-[]   : AllEven []
   even-∷ : {x : ℕ} {xs : List ℕ} → Even x → AllEven xs → AllEven (x ∷ xs)
-  {- supply appropriate clauses here -}
 
 data Dec (X : Set) : Set where
   yes : X       → Dec X
