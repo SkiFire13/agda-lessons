@@ -316,21 +316,21 @@ data _≅_ {X : Set} (a : X) : {Y : Set} → Y → Set where
 ≡-to-≅ : {X : Set} {a b : X} → a ≡ b → a ≅ b
 ≡-to-≅ refl = refl
 
-lemma-++ᵥ-associative : {A : Set} {n m o : ℕ} (xs : Vector A n) (ys : Vector A m) (zs : Vector A o)
-                        → xs ++ᵥ (ys ++ᵥ zs) ≅ (xs ++ᵥ ys) ++ᵥ zs
-lemma-++ᵥ-associative [] ys zs       = refl
-lemma-++ᵥ-associative {_} {succ n} {m} {o} (x ∷ xs) ys zs =
-  helper (lemma-+-associative n m o) (lemma-++ᵥ-associative xs ys zs)
+lemma-++ᵥ-associative₁ : {A : Set} {n m o : ℕ} (xs : Vector A n) (ys : Vector A m) (zs : Vector A o)
+                         → xs ++ᵥ (ys ++ᵥ zs) ≅ (xs ++ᵥ ys) ++ᵥ zs
+lemma-++ᵥ-associative₁ [] ys zs       = refl
+lemma-++ᵥ-associative₁ {_} {succ n} {m} {o} (x ∷ xs) ys zs =
+  helper (lemma-+-associative n m o) (lemma-++ᵥ-associative₁ xs ys zs)
   where
   helper : {A : Set} {n m : ℕ} {x : A} {xs : Vector A n} {ys : Vector A m} → n ≡ m → xs ≅ ys
          → _≅_ {Vector A (succ n)} (x ∷ xs) {Vector A (succ m)} (x ∷ ys)
   helper refl refl = refl
 
 -- Version with transport and helper function
-lemma-++ᵥ-associative' : {A : Set} {n m o : ℕ} (xs : Vector A n) (ys : Vector A m) (zs : Vector A o)
-                          → transport (Vector A) (lemma-+-associative n m o) (xs ++ᵥ (ys ++ᵥ zs)) ≡ ((xs ++ᵥ ys) ++ᵥ zs)
-lemma-++ᵥ-associative' []                            ys zs = refl
-lemma-++ᵥ-associative' {_} {succ n} {m} {o} (x ∷ xs) ys zs = helper (lemma-+-associative n m o) (lemma-++ᵥ-associative' xs ys zs)
+lemma-++ᵥ-associative₂ : {A : Set} {n m o : ℕ} (xs : Vector A n) (ys : Vector A m) (zs : Vector A o)
+                         → transport (Vector A) (lemma-+-associative n m o) (xs ++ᵥ (ys ++ᵥ zs)) ≡ ((xs ++ᵥ ys) ++ᵥ zs)
+lemma-++ᵥ-associative₂ []                            ys zs = refl
+lemma-++ᵥ-associative₂ {_} {succ n} {m} {o} (x ∷ xs) ys zs = helper (lemma-+-associative n m o) (lemma-++ᵥ-associative₂ xs ys zs)
   where
   helper : {A : Set} {n m : ℕ} {x : A} {xs : Vector A n} {ys : Vector A m} → (n≡m : n ≡ m)
            → transport (Vector A) n≡m xs ≡ ys
@@ -345,9 +345,9 @@ transport-id : {A : Set} {F : A → Set} (f : A → A) (g : {a : A} (x : F a) �
                → (transport F (cong f a≡b)) ∘ g ≡ g ∘ (transport F a≡b)
 transport-id f g refl = refl
 
-lemma-++ᵥ-associative'' : {A : Set} {n m o : ℕ} (xs : Vector A n) (ys : Vector A m) (zs : Vector A o)
-                          → transport (Vector A) (lemma-+-associative n m o) (xs ++ᵥ (ys ++ᵥ zs)) ≡ ((xs ++ᵥ ys) ++ᵥ zs)
-lemma-++ᵥ-associative'' []                            ys zs = refl
-lemma-++ᵥ-associative'' {A} {succ n} {m} {o} (x ∷ xs) ys zs = trans
+lemma-++ᵥ-associative₃ : {A : Set} {n m o : ℕ} (xs : Vector A n) (ys : Vector A m) (zs : Vector A o)
+                         → transport (Vector A) (lemma-+-associative n m o) (xs ++ᵥ (ys ++ᵥ zs)) ≡ ((xs ++ᵥ ys) ++ᵥ zs)
+lemma-++ᵥ-associative₃ []                            ys zs = refl
+lemma-++ᵥ-associative₃ {A} {succ n} {m} {o} (x ∷ xs) ys zs = trans
   (equal→pwequal (transport-id succ (x ∷_) (lemma-+-associative n m o)))
-  (cong (x ∷_) (lemma-++ᵥ-associative'' xs ys zs))
+  (cong (x ∷_) (lemma-++ᵥ-associative₃ xs ys zs))
