@@ -254,4 +254,3 @@ data _∈_ {A : Set} : A → List A → Set where
 Any-to-∈ : {A : Set} {x : A} {ys : List A} → Any (_≡_ x) ys → x ∈ ys
 Any-to-∈ (base-any refl) = base-∈
 Any-to-∈ (step-any any)  = step-∈ (Any-to-∈ any)
- 
