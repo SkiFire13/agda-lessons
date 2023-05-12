@@ -169,6 +169,11 @@ lemma-even?-even?'-better (succ (succ a)) = begin
   even?' a               ≡⟨⟩
   even?' (succ (succ a)) ∎
 
+lemma-even?-even?'-4 : (a : ℕ) → even? a ≡ even?' a
+lemma-even?-even?'-4 zero = refl
+lemma-even?-even?'-4 (succ zero) = refl
+lemma-even?-even?'-4 (succ (succ a)) rewrite lemma₂ (even? a) = lemma-even?-even?'-4 a
+
 -- EXERCISE: Show that it is not the case that "succ (pred a) ≡ a" for all natural numbers a.
 lemma-succ-pred : ((a : ℕ) → succ (pred a) ≡ a) → ⊥
 lemma-succ-pred f with f zero
