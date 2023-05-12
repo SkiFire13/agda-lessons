@@ -304,6 +304,7 @@ lemma-take-drop (succ k) (x ∷ xs) = cong (_∷_ x) (lemma-take-drop k xs)
 -- EXERCISE: Find out where the difficulty is in stating that _++ᵥ_ on
 -- vectors is associative.
 
+-- Version with heterogeneous equality
 infix 4 _≅_
 
 data _≅_ {X : Set} (a : X) : {Y : Set} → Y → Set where
@@ -325,6 +326,7 @@ lemma-++ᵥ-associative {_} {succ n} {m} {o} (x ∷ xs) ys zs =
          → _≅_ {Vector A (succ n)} (x ∷ xs) {Vector A (succ m)} (x ∷ ys)
   helper refl refl = refl
 
+-- Version with transport and helper function
 lemma-++ᵥ-associative' : {A : Set} {n m o : ℕ} (xs : Vector A n) (ys : Vector A m) (zs : Vector A o)
                           → transport (Vector A) (lemma-+-associative n m o) (xs ++ᵥ (ys ++ᵥ zs)) ≡ ((xs ++ᵥ ys) ++ᵥ zs)
 lemma-++ᵥ-associative' []                            ys zs = refl
@@ -334,4 +336,15 @@ lemma-++ᵥ-associative' {_} {succ n} {m} {o} (x ∷ xs) ys zs = helper (lemma-+
            → transport (Vector A) n≡m xs ≡ ys
            → transport (Vector A) (cong succ n≡m) (x ∷ xs) ≡ x ∷ ys 
   helper refl refl = refl
- 
+
+-- Version with transport and proof that transport preserves equality when composed from both sides
+transport-id : {A : Set} {F : A → Set} (f : A → A) (g : {a : A} (x : F a) → F (f a)) {a b : A} (a≡b : a ≡ b)
+               → (λ x → transport F (cong f a≡b) (g x)) ≡ (λ x → g (transport F a≡b x))
+transport-id f g refl = refl
+
+lemma-++ᵥ-associative'' : {A : Set} {n m o : ℕ} (xs : Vector A n) (ys : Vector A m) (zs : Vector A o)
+                          → transport (Vector A) (lemma-+-associative n m o) (xs ++ᵥ (ys ++ᵥ zs)) ≡ ((xs ++ᵥ ys) ++ᵥ zs)
+lemma-++ᵥ-associative'' []                            ys zs = refl
+lemma-++ᵥ-associative'' {A} {succ n} {m} {o} (x ∷ xs) ys zs = trans
+  (equal→pwequal (transport-id succ (x ∷_) (lemma-+-associative n m o)))
+  (cong (x ∷_) (lemma-++ᵥ-associative'' xs ys zs))
