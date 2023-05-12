@@ -216,7 +216,7 @@ lemma-+-associative (succ a) b c = cong succ (lemma-+-associative a b c)
 -- we will be able to clean up the proof.
 lemma-distributive : (a b c : ℕ) → ((a + b) · c) ≡ ((a · c) + (b · c))
 lemma-distributive zero     b c = refl
-lemma-distributive (succ a) b c = trans (cong (λ n → c + n) (lemma-distributive a b c)) (lemma-+-associative c (a · c) (b · c))
+lemma-distributive (succ a) b c = trans (cong (c +_) (lemma-distributive a b c)) (lemma-+-associative c (a · c) (b · c))
 
 -- EXERCISE: Show that the double of any number is even.
 data Even : ℕ → Set where
@@ -251,13 +251,13 @@ module _ {A : Set} where
   -- EXERCISE: Verify the following lemma.
   lemma-reverse-∷ʳ : (ys : List A) (x : A) → reverse (ys ∷ʳ x) ≡ (x ∷ reverse ys)
   lemma-reverse-∷ʳ []       x = refl
-  lemma-reverse-∷ʳ (y ∷ ys) x = cong (λ l → l ∷ʳ y) (lemma-reverse-∷ʳ ys x)
+  lemma-reverse-∷ʳ (y ∷ ys) x = cong (_∷ʳ y) (lemma-reverse-∷ʳ ys x)
 
   -- lemma-reverse-∷ʳ' : (ys : List A) (x : A) → reverse ys ∷ʳ x 
 
   lemma-reverse-reverse : (xs : List A) → reverse (reverse xs) ≡ xs
   lemma-reverse-reverse []       = refl
-  lemma-reverse-reverse (x ∷ xs) = trans (lemma-reverse-∷ʳ (reverse xs) x) (cong (_∷_ x) (lemma-reverse-reverse xs))
+  lemma-reverse-reverse (x ∷ xs) = trans (lemma-reverse-∷ʳ (reverse xs) x) (cong (x ∷_) (lemma-reverse-reverse xs))
 
   -- EXERCISE: State and prove that _++_ on lists is associative.
   _++_ : List A → List A → List A
@@ -278,7 +278,7 @@ module _ {A : Set} where
   -- EXERCISE: Show that related lists are equal.
   ≈→≡ : {xs ys : List A} → xs ≈ ys → xs ≡ ys
   ≈→≡ both-empty                      = refl
-  ≈→≡ (both-same-cons {x = x} refl p) = cong (_∷_ x) (≈→≡ p)
+  ≈→≡ (both-same-cons {x = x} refl p) = cong (x ∷_) (≈→≡ p)
 
 
 ---------------------------------
@@ -304,7 +304,7 @@ _++ᵥ_ : {A : Set} {n m : ℕ} → Vector A n → Vector A m → Vector A (n + 
 -- EXERCISE: Verify the following lemma.
 lemma-take-drop : {A : Set} {n : ℕ} → (k : ℕ) → (xs : Vector A (k + n)) → (take k xs ++ᵥ drop k xs) ≡ xs
 lemma-take-drop zero     xs       = refl
-lemma-take-drop (succ k) (x ∷ xs) = cong (_∷_ x) (lemma-take-drop k xs)
+lemma-take-drop (succ k) (x ∷ xs) = cong (x ∷_) (lemma-take-drop k xs)
 
 -- EXERCISE: Find out where the difficulty is in stating that _++ᵥ_ on
 -- vectors is associative.
