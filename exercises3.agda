@@ -356,3 +356,12 @@ lemma-++ᵥ-associative₃                      []       ys zs = refl
 lemma-++ᵥ-associative₃ {A} {succ n} {m} {o} (x ∷ xs) ys zs = trans
   (equal→pwequal (transport-id succ (x ∷_) (lemma-+-associative n m o)))
   (cong (x ∷_) (lemma-++ᵥ-associative₃ xs ys zs))
+
+-- Version with transport and no helper functions, only with and rewrite
+lemma-++ᵥ-associative₄ : {A : Set} {n m o : ℕ} (xs : Vector A n) (ys : Vector A m) (zs : Vector A o)
+                         → transport (Vector A) (lemma-+-associative n m o) (xs ++ᵥ (ys ++ᵥ zs)) ≡ ((xs ++ᵥ ys) ++ᵥ zs)
+lemma-++ᵥ-associative₄                      []       ys zs = refl
+lemma-++ᵥ-associative₄ {A} {succ n} {m} {o} (x ∷ xs) ys zs
+  rewrite symm (lemma-++ᵥ-associative₄ xs ys zs)
+  with (n + m) + o | lemma-+-associative n m o
+... | _ | refl = refl
