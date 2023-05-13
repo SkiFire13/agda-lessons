@@ -365,3 +365,12 @@ lemma-++ᵥ-associative₄ {A} {succ n} {m} {o} (x ∷ xs) ys zs
   rewrite symm (lemma-++ᵥ-associative₄ xs ys zs)
   with (n + m) + o | lemma-+-associative n m o
 ... | _ | refl = refl
+
+-- Version with transport and no helper functions, only with and rewrite, and simplier
+lemma-++ᵥ-associative₅ : {A : Set} {n m o : ℕ} (xs : Vector A n) (ys : Vector A m) (zs : Vector A o)
+                         → (xs ++ᵥ (ys ++ᵥ zs)) ≡ transport (Vector A) (symm (lemma-+-associative n m o)) ((xs ++ᵥ ys) ++ᵥ zs)
+lemma-++ᵥ-associative₅                      []       ys zs = refl
+lemma-++ᵥ-associative₅ {A} {succ n} {m} {o} (x ∷ xs) ys zs
+  rewrite lemma-++ᵥ-associative₅ xs ys zs
+  rewrite lemma-+-associative n m o
+  = refl
