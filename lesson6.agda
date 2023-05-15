@@ -44,5 +44,21 @@ module _
   ... | right z≤x = other y≤z s'
 
   sort-sorted : (xs : List) -> Sorted (sort xs)
-  sort-sorted [] = empty
+  sort-sorted []       = empty
   sort-sorted (x ∷ xs) = insert-sorted x (sort xs) (sort-sorted xs)
+
+  data Perm : List → List → Set where
+    refl  : {xs : List} → Perm xs xs
+    prep  : {xs ys : List} {x : A} → Perm xs ys → Perm (x ∷ xs) (x ∷ ys)
+    swap  : {xs ys : List} {x y : A} → Perm xs ys → Perm (x ∷ y ∷ xs) (y ∷ x ∷ ys)
+    trans : {xs ys zs : List} → Perm xs ys → Perm ys zs → Perm xs zs
+
+  insert-permutation : (x : A) (xs : List) → Perm (x ∷ xs) (insert x xs)
+  insert-permutation x [] = refl
+  insert-permutation x (y ∷ xs) with cmp? x y
+  ... | left  x≤y = refl
+  ... | right y≤x = trans (swap refl) (prep (insert-permutation x xs))
+
+  sort-permutation : (xs : List) → Perm xs (sort xs)
+  sort-permutation []       = refl
+  sort-permutation (x ∷ xs) = trans (prep (sort-permutation xs)) (insert-permutation x (sort xs))
