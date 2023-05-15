@@ -35,13 +35,15 @@ module _
     other  : {x y : A} {xs : List} → x ≤ y → Sorted (y ∷ xs) → Sorted (x ∷ y ∷ xs)
 
   insert-sorted : (x : A) (xs : List) → Sorted xs -> Sorted (insert x xs)
-  insert-sorted x []           s = single
-  insert-sorted x (y ∷ xs)     s with cmp? x y
-  insert-sorted x (y ∷ xs)     s             | left  x≤y = other x≤y s
-  insert-sorted x (y ∷ [])     single        | right y≤x = other y≤x single
-  insert-sorted x (y ∷ z ∷ xs) (other y≤z s) | right y≤x with s' <- insert-sorted x (z ∷ xs) s with cmp? x z
-  ... | left  x≤z = other y≤x (other x≤z s)
-  ... | right z≤x = other y≤z s'
+  insert-sorted x [] empty = single
+  insert-sorted x (y ∷ []) single with cmp? x y
+  ... | left  x≤y = other x≤y single
+  ... | right y≤x = other y≤x single
+  insert-sorted x (y ∷ z ∷ xs) (other y≤z s) with cmp? x y
+  ... | left  x≤y = other x≤y (other y≤z s)
+  ... | right y≤x with s' <- insert-sorted x (z ∷ xs) s with cmp? x z
+  ...   | left  x≤z = other y≤x (other x≤z s)
+  ...   | right z≤x = other y≤z s'
 
   sort-sorted : (xs : List) -> Sorted (sort xs)
   sort-sorted []       = empty
