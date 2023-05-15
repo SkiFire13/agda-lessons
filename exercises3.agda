@@ -363,8 +363,8 @@ lemma-++ᵥ-associative₄ : {A : Set} {n m o : ℕ} (xs : Vector A n) (ys : Vec
 lemma-++ᵥ-associative₄                      []       ys zs = refl
 lemma-++ᵥ-associative₄ {A} {succ n} {m} {o} (x ∷ xs) ys zs
   rewrite symm (lemma-++ᵥ-associative₄ xs ys zs)
-  with (n + m) + o | lemma-+-associative n m o
-... | _ | refl = refl
+  with {(n + m) + o} | lemma-+-associative n m o
+... | refl = refl
 
 -- Version with transport and no helper functions, only with and rewrite, and simplier
 lemma-++ᵥ-associative₅ : {A : Set} {n m o : ℕ} (xs : Vector A n) (ys : Vector A m) (zs : Vector A o)
