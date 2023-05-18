@@ -41,9 +41,9 @@ module _
   ... | right y≤x = other y≤x single
   insert-sorted x (y ∷ z ∷ xs) (other y≤z s) with cmp? x y
   ... | left  x≤y = other x≤y (other y≤z s)
-  ... | right y≤x with s' <- insert-sorted x (z ∷ xs) s with cmp? x z
-  ...   | left  x≤z = other y≤x (other x≤z s)
-  ...   | right z≤x = other y≤z s'
+  ... | right y≤x with cmp? x z | insert-sorted x (z ∷ xs) s
+  ...   | left  x≤z | _  = other y≤x (other x≤z s)
+  ...   | right z≤x | s' = other y≤z s'
 
   sort-sorted : (xs : List) -> Sorted (sort xs)
   sort-sorted []       = empty
