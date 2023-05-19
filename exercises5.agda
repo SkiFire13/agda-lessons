@@ -192,11 +192,48 @@ module CorrectByConstruction₂
 -- type "* A" which is A adjoined by a new least element -∞. Use
 -- this construction to get rid of the additional requirement.
 data *_ (A : Set) : Set where
-  -- EXERCISE: fill this in
+  -∞ : * A
+  *ₐ : A → * A
 
 module Lift {A : Set} (_≤_ : A → A → Set) where
   -- EXERCISE: Define a relation _≼_ on * A.
+  data _≼_ : * A → * A → Set where
+    -∞ : {*a : * A} → -∞ ≼ *a
+    *ₐ : {a b : A} → a ≤ b → *ₐ a ≼ *ₐ b
+
   -- EXERCISE: Verify that there is a least element for this relation.
+  -∞≼_ : (*a : * A) → -∞ ≼ *a
+  -∞≼ _ = -∞
+
   -- EXERCISE: Verify that if we have a function cmp for A then we also have such a function for * A.
-  -- EXERCISE: Define a correct-by-construction sort function for A, by using * A.
-    
+  *cmp : ((x y : A) → (x ≤ y) ⊎ (y ≤ x)) → (*x *y : * A) → (*x ≼ *y) ⊎ (*y ≼ *x)
+  *cmp cmp -∞     *y     = left -∞
+  *cmp cmp (*ₐ x) -∞     = right -∞
+  *cmp cmp (*ₐ x) (*ₐ y) with cmp x y
+  ... | left  x≤y = left (*ₐ x≤y)
+  ... | right y≤x = right (*ₐ y≤x)
+
+-- EXERCISE: Define a correct-by-construction sort function for A, by using * A.
+module CorrectByConstruction₃
+  {A : Set} (_≤_ : A → A → Set)
+  (cmp : (x y : A) → (x ≤ y) ⊎ (y ≤ x)) where
+
+  open Lift _≤_
+  
+  data _◂_↝_ : A → List A → List A → Set where
+    here  : {x : A} {xs : List A} → x ◂ xs ↝ (x ∷ xs)
+    there : {x y : A} {ys xys : List A} → x ◂ ys ↝ xys → x ◂ (y ∷ ys) ↝ (y ∷ xys)
+
+  data OPList (l : * A) : List A → Set where
+    nil  : OPList l []
+    cons : {ys xys : List A} → (x : A) → OPList (*ₐ x) ys → l ≼ *ₐ x → (x ◂ ys ↝ xys) → OPList l xys
+
+  insert : {l : * A} (x : A) {ys : List A} (oys : OPList l ys) → l ≼ *ₐ x → OPList l (x ∷ ys)
+  insert x nil                l≼x = cons x nil l≼x here
+  insert x (cons y oys l≼y p) l≼x with cmp x y
+  ... | left  x≤y = cons x (cons y oys (*ₐ x≤y) p) l≼x here
+  ... | right y≤x = cons y (insert x oys (*ₐ y≤x)) l≼y (there p)
+
+  sort : (xs : List A) → OPList -∞ xs
+  sort [] = nil
+  sort (x ∷ xs) = insert x (sort xs) (-∞≼ *ₐ x)
