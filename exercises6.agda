@@ -51,7 +51,6 @@ data _≤_ where
 
 x < y = succ x ≤ y
 
-
 ----------------------------
 ----[ BASIC PROPERTIES ]----
 ----------------------------
@@ -74,6 +73,13 @@ id≤succ {zero}    = ≤-zero
 id≤succ {succ x}  = ≤-succ-mon id≤succ
 id≤succ {lim f x} = ≤-limiting (λ n → ≤-trans id≤succ (≤-succ-mon (≤-cocone refl)))
 
+flim-mon : {f : ℕ → O} {fmon : Monotonic f} {n : ℕ} → f n ≤ lim f fmon
+flim-mon {f} {fmon} {n} = ≤-cocone refl
+
+<-to-≤ : {x y : O} → x < y → x ≤ y
+<-to-≤ (≤-trans x<z z≤y) = ≤-trans (<-to-≤ x<z) z≤y
+<-to-≤ (≤-succ-mon x≤y) = ≤-trans x≤y id≤succ
+<-to-≤ (≤-cocone x<y) = ≤-cocone (<-to-≤ x<y)
 
 --------------------------
 ----[ BASIC EXAMPLES ]----
@@ -144,6 +150,8 @@ example₃ = ≤-limiting (λ n → ≤-cocone {n = suc n} (lemma n))
 +-mon' {a = succ a} x≤y = ≤-succ-mon (+-mon' x≤y)
 +-mon' {a = lim f fmon} x≤y = lim-mon (λ n → +-mon' x≤y)
 
+one≤fone : {f : ℕ → O} {fmon : Monotonic f} → succ zero ≤ f (suc zer)
+one≤fone {fmon = fmon} = ≤-trans (≤-succ-mon ≤-zero) (fmon zer)
 
 -----------------------------------
 ----[ MORE ORDINAL ARITHMETIC ]----
@@ -151,6 +159,42 @@ example₃ = ≤-limiting (λ n → ≤-cocone {n = suc n} (lemma n))
 
 -- EXERCISE: Define ordinal multiplication and exponentiation, by
 -- implementing the rules listed on the Wikipedia page on ordinal arithmetic.
+_·_ : O → O → O
+·-mon : {x a b : O} → a ≤ b → (x · a) ≤ (x · b)
+succ-·-smon : {x a b : O} → a < b → (succ x · a) < (succ x · b)
+lim-·-smon : {a b : O} {f : ℕ → O} {fmon : Monotonic f} → a < b → (lim f fmon · a) < (lim f fmon · b)
+
+a · zero = zero
+a · succ b = (a · b) + a
+a · lim f fmon with a
+... | zero           = zero
+... | a' @ (succ _)  = lim (λ n → a' · f n) (λ n → succ-·-smon (fmon n))
+... | a' @ (lim _ _) = lim (λ n → a' · f n) (λ n → lim-·-smon (fmon n))
+
+·-zero : {x : O} → zero · x ≤ zero
+·-zero {zero} = ≤-zero
+·-zero {succ x} = ·-zero {x}
+·-zero {lim f x} = ≤-zero
+
+·-mon ≤-zero = ≤-zero
+·-mon (≤-trans a≤c c≤b) = ≤-trans (·-mon a≤c) (·-mon c≤b)
+·-mon (≤-succ-mon a≤b) = +-mon' (·-mon a≤b)
+·-mon {zero} (≤-cocone {x = x} a≤b) = ·-zero {x}
+·-mon {succ _} (≤-cocone {n = n} a≤fn) = ≤-cocone {n = n} (·-mon a≤fn)
+·-mon {lim _ _} (≤-cocone {n = n} a≤fn) = ≤-cocone {n = n} (·-mon a≤fn)
+·-mon {zero} (≤-limiting g) = ≤-zero
+·-mon {succ x} (≤-limiting g) = ≤-limiting (λ n → ·-mon (g n))
+·-mon {lim f x} (≤-limiting g) = ≤-limiting (λ n → ·-mon (g n))
+
+succ-·-smon (≤-trans a<y y≤b) = ≤-trans (succ-·-smon a<y) (·-mon y≤b)
+succ-·-smon (≤-succ-mon a≤b) = ≤-succ-mon (≤-trans (·-mon a≤b) (+-mon ≤-zero))
+succ-·-smon {x} (≤-cocone a<b) =
+  ≤-trans (≤-succ-mon (+-mon ≤-zero)) (≤-cocone (·-mon {succ x} a<b))
+
+lim-·-smon (≤-trans a<y y≤b) = ≤-trans (lim-·-smon a<y) (·-mon y≤b)
+lim-·-smon {f = f} {fmon = fmon} (≤-succ-mon a≤y) =
+  ≤-cocone (≤-trans (≤-succ-mon (·-mon a≤y)) (+-mon (one≤fone {f} {fmon})))
+lim-·-smon {f = f} (≤-cocone {f'} {fmon'} {x} {n} a<f'n) = ≤-cocone (lim-·-smon a<f'n)
 
 -- EXERCISE: Define the ordinal number ε₀.
 
@@ -198,4 +242,4 @@ lim-mon' p = comparison-lemma (λ n → n , p n)
 --------------------------------------
 
 -- EXERCISE: Implement the "fast-growing hierarchy" of functions,
--- by following the definition of the respective Wikipedia entry.
+-- by following the definition of the respective Wikipedia entry.   
