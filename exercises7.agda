@@ -28,19 +28,28 @@ data _<_ : ℕ → ℕ → Set where
 
 -- EXERCISE: Verify that the successor operation is monotonic.
 lemma-succ-monotonic : {a b : ℕ} → a < b → succ a < succ b
-lemma-succ-monotonic p = {!!}
+lemma-succ-monotonic base = base
+lemma-succ-monotonic (step p) = step (lemma-succ-monotonic p)
 
 -- EXERCISE: Verify that half of a number is (almost) always smaller than the number.
 lemma-half< : (a : ℕ) → half (succ a) < succ a
-lemma-half< a = {!!}
+lemma-half< zero            = base
+lemma-half< (succ zero)     = base
+lemma-half< (succ (succ a)) = step (lemma-succ-monotonic (lemma-half< a))
 
 -- EXERCISE: Verify that the following alternative definition of the less-than relation is equivalent to _<_.
 data _<'_ : ℕ → ℕ → Set where
   base : {n : ℕ}   → zero <' succ n
   step : {a b : ℕ} → a <' b → succ a <' succ b
 
+lemma-succ' : {a b : ℕ} → a <' b → a <' succ b
+lemma-succ' base = base
+lemma-succ' (step a<b) = step (lemma-succ' a<b)
+
 <→<' : {a b : ℕ} → a < b → a <' b
-<→<' = {!!}
+<→<' {zero} base = base
+<→<' {succ a} base = step (<→<' base)
+<→<' (step a<b) = lemma-succ' (<→<' a<b)
 
 <'→< : {a b : ℕ} → a < b → a <' b
 <'→< = {!!}
@@ -195,3 +204,4 @@ module WfGen (X : Set) (_<_ : X → X → Set) where
 
         theorem : (x : X) → f x ≡ step x (λ y p → f y)
         theorem = {!!}
+ 
