@@ -6,6 +6,9 @@ data _≡_ {X : Set} : X → X → Set where
   refl : {x : X} → x ≡ x
 {-# BUILTIN EQUALITY _≡_ #-}
 
+cong : {A B : Set} {x y : A} (f : A → B) → x ≡ y → f x ≡ f y
+cong f refl = refl
+
 data ℕ : Set where
   zero : ℕ
   succ : ℕ → ℕ
@@ -37,23 +40,38 @@ lemma-half< zero            = base
 lemma-half< (succ zero)     = base
 lemma-half< (succ (succ a)) = step (lemma-succ-monotonic (lemma-half< a))
 
+lemma-<-trans : {a b c : ℕ} → a < b → b < c → a < c
+lemma-<-trans a<b base = step a<b
+lemma-<-trans a<b (step b<c) = step (lemma-<-trans a<b b<c)
+
+lemma-<-trans' : {a b c : ℕ} → a < b → b < succ c → a < c
+lemma-<-trans' a<b base = a<b
+lemma-<-trans' a<b (step b<c) = lemma-<-trans a<b b<c
+
 -- EXERCISE: Verify that the following alternative definition of the less-than relation is equivalent to _<_.
 data _<'_ : ℕ → ℕ → Set where
   base : {n : ℕ}   → zero <' succ n
   step : {a b : ℕ} → a <' b → succ a <' succ b
 
+lemma-base' : {a : ℕ} → a <' succ a
+lemma-base' {zero}   = base
+lemma-base' {succ a} = step lemma-base'
+
 lemma-succ' : {a b : ℕ} → a <' b → a <' succ b
-lemma-succ' base = base
+lemma-succ' base       = base
 lemma-succ' (step a<b) = step (lemma-succ' a<b)
 
 <→<' : {a b : ℕ} → a < b → a <' b
-<→<' {zero} base = base
-<→<' {succ a} base = step (<→<' base)
+<→<' base       = lemma-base'
 <→<' (step a<b) = lemma-succ' (<→<' a<b)
 
-<'→< : {a b : ℕ} → a < b → a <' b
-<'→< = {!!}
+lemma-zero : {n : ℕ} → zero < succ n
+lemma-zero {zero}   = base
+lemma-zero {succ n} = step lemma-zero
 
+<'→< : {a b : ℕ} → a <' b → a < b
+<'→< base        = lemma-zero
+<'→< (step a<'b) = lemma-succ-monotonic (<'→< a<'b)
 
 --------------------------------------------------------
 ----[ INTERLUDE: BINARY REPRESENTATIONS OF NUMBERS ]----
@@ -85,14 +103,23 @@ encode : ℕ → Bin
 encode zero     = []
 encode (succ n) = succ' (encode n)
 
+-- lemma-double-swap : {n : ℕ} → succ (succ (double n)) ≡ double (succ n)
+-- lemma-double-swap = refl
+
 -- EXERCISE: Show that "succ'" is on binary representations what "succ" is on natural numbers.
 -- Hint: You will need to define and use the "cong" function from the other files.
 lemma-succ-succ' : (xs : Bin) → decode (succ' xs) ≡ succ (decode xs)
-lemma-succ-succ' xs = {!!}
+lemma-succ-succ' [] = refl
+lemma-succ-succ' (xs O) = refl
+lemma-succ-succ' (xs I) rewrite lemma-succ-succ' xs = refl
 
 -- EXERCISE: Show that "decode" and "encode" are [one-sided] inverses of each other.
 lemma-decode-encode : (n : ℕ) → decode (encode n) ≡ n
-lemma-decode-encode n = {!!}
+lemma-decode-encode zero = refl
+lemma-decode-encode (succ n)
+  rewrite lemma-succ-succ' (encode n)
+  rewrite lemma-decode-encode n
+  = refl
 
 -- EXERCISE: Implement binary addition and verify that it works correctly by comparing
 -- to the standard addition on natural numbers.
@@ -111,10 +138,20 @@ module NaiveGas where
   digits : ℕ → ℕ
   digits n = go n n
 
+  lemma-go : (n m o : ℕ) → n < succ m → n < succ o → go n m ≡ go n o
+  lemma-go zero m o n<sm n<so = refl
+  lemma-go (succ n) zero o (step ()) n<so
+  lemma-go (succ n) m zero n<sm (step ())
+  lemma-go (succ n) (succ m) (succ o) n<sm n<so =
+    cong succ (lemma-go (half (succ n)) m o
+      (lemma-<-trans' (lemma-half< n) n<sm)
+      (lemma-<-trans' (lemma-half< n) n<so))
+
   -- EXERCISE: Verify this basic statement, certifying that the function meets its contract.
   -- (Not easy, you will need auxiliary lemmas!)
   lemma-digits : (n : ℕ) → digits (succ n) ≡ succ (digits (half (succ n)))
-  lemma-digits n = {!!}
+  lemma-digits n =
+    cong succ (lemma-go (half (succ n)) n (half (succ n)) (lemma-half< n) base)
 
 
 -------------------------------------------------------
@@ -125,9 +162,14 @@ module WfNat where
   data Acc : ℕ → Set where
     acc : {x : ℕ} → ((y : ℕ) → y < x → Acc y) → Acc x
 
+  lemma-succ-accessible : {x : ℕ} → Acc x → ((y : ℕ) → y < succ x → Acc y)
+  lemma-succ-accessible (acc f) y base     = acc f
+  lemma-succ-accessible (acc f) y (step p) = f y p
+
   -- EXERCISE: Show that every natural number is accessible.
   theorem-ℕ-well-founded : (n : ℕ) → Acc n
-  theorem-ℕ-well-founded n = {!!}
+  theorem-ℕ-well-founded zero = acc λ y ()
+  theorem-ℕ-well-founded (succ n) = acc (lemma-succ-accessible (theorem-ℕ-well-founded n))
 
   go : (n : ℕ) → Acc n → ℕ
   go zero     gas     = zero
@@ -136,9 +178,15 @@ module WfNat where
   digits : ℕ → ℕ
   digits n = go n (theorem-ℕ-well-founded n)
 
+  lemma-digits-go : (n : ℕ) (a : Acc (succ n)) (b : Acc (half (succ n))) → go (succ n) a ≡ succ (go (half (succ n)) b)
+  lemma-digits-go zero (acc f) b = refl
+  lemma-digits-go (succ n) (acc f) (acc g) = cong succ (lemma-digits-go (half n) _ _)
+
   -- EXERCISE: Verify this fundamental observation. Not easy!
   lemma-digits : (n : ℕ) → digits (succ n) ≡ succ (digits (half (succ n)))
-  lemma-digits n = {!!}
+  lemma-digits n = lemma-digits-go n
+    (theorem-ℕ-well-founded (succ n))
+    ((theorem-ℕ-well-founded (half (succ n))))
 
   data G : ℕ → ℕ → Set where
     -- cf. naive definition: "digits zero = zero"
@@ -149,15 +197,20 @@ module WfNat where
 
   -- EXERCISE: For a change, this is not too hard.
   lemma-G-is-functional : {a b b' : ℕ} → G a b → G a b' → b ≡ b'
-  lemma-G-is-functional p q = {!!}
+  lemma-G-is-functional base base = refl
+  lemma-G-is-functional (step p) (step q) = cong succ (lemma-G-is-functional p q)
 
   data Σ (X : Set) (Y : X → Set) : Set where
     _,_ : (x : X) → Y x → Σ X Y
 
   -- EXERCISE: Fill this in. You will need lemma-digits and more; not easy.
   lemma-G-is-computed-by-digits : (a : ℕ) → G a (digits a)
-  lemma-G-is-computed-by-digits = {!!}
-
+  lemma-G-is-computed-by-digits a = goG a (theorem-ℕ-well-founded a)
+    where
+    goG : (a : ℕ) → Acc a → G a (digits a)
+    goG zero (acc f) = base
+    goG (succ a) (acc f) rewrite lemma-digits a
+      = step (goG (half (succ a)) ((f (half (succ a)) (lemma-half< a))))
 
 ---------------------------------------------
 ----[ WELL-FOUNDED RECURSION IN GENERAL ]----
@@ -173,11 +226,14 @@ module WfGen (X : Set) (_<_ : X → X → Set) where
   -- EXERCISE: Show that well-founded relations are irreflexive. More
   -- precisely, verify the following local version of this statement:
   lemma-wf-irreflexive : {x : X} → Acc x → x < x → ⊥
-  lemma-wf-irreflexive = {!!}
+  lemma-wf-irreflexive {x} (acc f) x<x = lemma-wf-irreflexive (f x x<x) x<x
 
   -- EXERCISE: Show that there are no infinite descending sequences.
   lemma-no-descending-sequences : (α : ℕ → X) → ((n : ℕ) → α (succ n) < α n) → Acc (α zero) → ⊥
-  lemma-no-descending-sequences = {!!}
+  lemma-no-descending-sequences α d a = lemma zero a
+    where
+    lemma : (n : ℕ) → Acc (α n) → ⊥
+    lemma n (acc f) = lemma (succ n) (f (α (succ n)) (d n))
 
   module _ {A : X → Set} (step : (x : X) → ((y : X) → y < x → A y) → A x) where
     -- This is a very general "go" function like for the particular "digits" example above.
@@ -193,7 +249,10 @@ module WfGen (X : Set) (_<_ : X → X → Set) where
     -- are unique.
     module _ (extensional : (x : X) (u v : (y : X) → y < x → A y) → ((y : X) (p : y < x) → u y p ≡ v y p) → step x u ≡ step x v) where
       lemma : (x : X) (p q : Acc x) → go x p ≡ go x q
-      lemma = {!!}
+      lemma x (acc f) (acc g) = extensional x
+        (λ y p → go y (f y p))
+        (λ y p → go y (g y p))
+        λ y p → lemma y (f y p) (g y p)
 
       -- EXERCISE: Assuming that X is well-founded, we can define the
       -- function "f" below. Verify that this satisfies the desired
@@ -203,5 +262,8 @@ module WfGen (X : Set) (_<_ : X → X → Set) where
         f x = go x (wf x)
 
         theorem : (x : X) → f x ≡ step x (λ y p → f y)
-        theorem = {!!}
- 
+        theorem x with acc g ← wf x = extensional x
+          (λ y p → go y (g y p))
+          (λ y p → go y (wf y))
+          (λ y p → lemma y (g y p) (wf y))
+    
