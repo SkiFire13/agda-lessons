@@ -52,13 +52,15 @@ module _
   es12 : {B C : Set} → (x₁ x₂ : B) → Id (B + C) (inl x₁) (inl x₂) → Id B x₁ x₂
   es12 {B} {C} x₁ x₂ z = sol₂
     where
-    l-or-d : (x : B + C) (d : B) → B
-    l-or-d x d = E-+ (λ _ → B) x (λ y → y) (λ _ → d)
+    c : (t : B + C) (d : B) → B
+    c t d = E-+ (λ _ → B) t (λ y → y) (λ _ → d)
 
-    l-or-d-inl-≡ : (x d : B) → (l-or-d (inl x) d) ≡ x
-    l-or-d-inl-≡ x d = C₁-+ (λ _ → B) x (λ y → y) (λ _ → d)
+    c-inl-≡ : (t d : B) → (c (inl t) d) ≡ t
+    c-inl-≡ t d = C₁-+ (λ _ → B) t (λ y → y) (λ _ → d)
  
-    t = λ w₁ w₂ w₃ → Id B (l-or-d w₁ x₁) (l-or-d w₂ x₁)
+    M : (w₁ w₂ : B + C) (w₃ : Id (B + C) w₁ w₂) → Set
+    M w₁ w₂ w₃ = Id B (c w₁ x₁) (c w₂ x₁)
 
-    sol₁ = E-Id t (inl x₁) (inl x₂) z (λ x → id (l-or-d x x₁))
-    sol₂ = transport (eq-F-Id (l-or-d-inl-≡ x₁ x₁) (l-or-d-inl-≡ x₂ x₁)) sol₁
+    sol₁ = E-Id M (inl x₁) (inl x₂) z (λ x → id (c x x₁))
+    sol₂ = transport (eq-F-Id (c-inl-≡ x₁ x₁) (c-inl-≡ x₂ x₁)) sol₁
+ 
